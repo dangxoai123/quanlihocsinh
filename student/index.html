@@ -86,7 +86,13 @@
             </div>
             <div id="questionsDisplay"></div>
         </div>
-        <div class="question-nav-panel" id="questionNavPanel"></div>
+        <div class="question-nav-panel" id="questionNavPanel">
+            <button class="btn btn-outline btn-sm" id="navPrevBtn"
+                onclick="navigateToQuestion(currentQuestionIndex - 1)">← Trước</button>
+            <span class="question-nav-counter" id="navCounter">1/1</span>
+            <button class="btn btn-outline btn-sm" id="navNextBtn"
+                onclick="navigateToQuestion(currentQuestionIndex + 1)">Tiếp →</button>
+        </div>
         <div class="exam-camera-preview" id="examCameraPreview" style="display: none;">
             <video id="examCameraVideo" autoplay playsinline muted></video>
             <span class="camera-label">📷 Camera ON</span>

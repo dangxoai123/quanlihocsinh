@@ -1317,42 +1317,19 @@ h3 {
   z-index: 50;
   display: flex;
   align-items: center;
-  gap: 8px;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.q-nav-btn {
-  width: 36px;
-  height: 36px;
-  border: 1px solid var(--border-glass);
-  background: var(--bg-glass);
-  color: var(--text-secondary);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  font-family: 'Inter', sans-serif;
-  font-size: 0.85rem;
-  font-weight: 600;
-  transition: var(--transition);
-  display: flex;
-  align-items: center;
+  gap: 16px;
   justify-content: center;
 }
 
-.q-nav-btn:hover {
-  border-color: var(--accent-blue);
-}
-
-.q-nav-btn.answered {
-  background: rgba(59, 130, 246, 0.2);
-  border-color: var(--accent-blue);
-  color: var(--accent-blue);
-}
-
-.q-nav-btn.current {
-  background: var(--gradient-btn);
-  border-color: transparent;
-  color: white;
+.question-nav-counter {
+  font-size: 1.1rem;
+  font-weight: 700;
+  background: var(--gradient-main);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  min-width: 60px;
+  text-align: center;
 }
 
 /* ===== VIOLATION WARNING ===== */

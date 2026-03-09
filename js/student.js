@@ -234,28 +234,33 @@ function renderQuestions() {
       </div>
     `;
         container.appendChild(card);
-
-        // Nav button
-        const navBtn = document.createElement('button');
-        navBtn.className = `q-nav-btn ${index === 0 ? 'current' : ''} ${answers[index] ? 'answered' : ''}`;
-        navBtn.textContent = index + 1;
-        navBtn.onclick = () => navigateToQuestion(index);
-        navBtn.id = `nav-btn-${index}`;
-        navPanel.appendChild(navBtn);
     });
 
     updateProgress();
+    updateNavCounter();
 }
 
 function navigateToQuestion(index) {
+    const total = currentTest.questions.length;
+    // Clamp index
+    if (index < 0) index = 0;
+    if (index >= total) index = total - 1;
+
     // Hide current
     document.getElementById(`exam-q-${currentQuestionIndex}`).style.display = 'none';
-    document.getElementById(`nav-btn-${currentQuestionIndex}`).classList.remove('current');
 
     // Show target
     currentQuestionIndex = index;
     document.getElementById(`exam-q-${index}`).style.display = 'block';
-    document.getElementById(`nav-btn-${index}`).classList.add('current');
+
+    updateNavCounter();
+}
+
+function updateNavCounter() {
+    const total = currentTest.questions.length;
+    document.getElementById('navCounter').textContent = `${currentQuestionIndex + 1}/${total}`;
+    document.getElementById('navPrevBtn').disabled = currentQuestionIndex <= 0;
+    document.getElementById('navNextBtn').disabled = currentQuestionIndex >= total - 1;
 }
 
 function selectAnswer(questionIndex, answer) {
