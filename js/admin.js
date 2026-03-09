@@ -827,7 +827,7 @@ async function viewStudentDetail(sessionId, testId) {
     }
 
     // Question detail
-    html += '<h3 style="font-size: 1rem; margin-bottom: 12px;">📝 Chi tiết câu trả lời</h3>';
+    html += '<h3 style="font-size: 1.2rem; margin-bottom: 14px;">📝 Chi tiết câu trả lời</h3>';
 
     testData.questions.forEach((q, index) => {
       const studentAnswer = sessionData.answers ? sessionData.answers[index] : null;
@@ -836,16 +836,16 @@ async function viewStudentDetail(sessionId, testId) {
       const bgColor = studentAnswer === null ? 'var(--bg-glass)' : (isCorrect ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)');
 
       html += `
-        <div style="background: ${bgColor}; border: 1px solid ${borderColor}; border-radius: var(--radius-md); padding: 16px; margin-bottom: 10px;">
-          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
-            <span style="font-size: 0.9rem; font-weight: 700; padding: 4px 12px; border-radius: 12px; background: var(--gradient-btn); color: white;">Câu ${index + 1}</span>
-            ${studentAnswer === null ? '<span style="font-size: 0.9rem; color: var(--text-muted);">⚪ Chưa trả lời</span>' : (isCorrect ? '<span style="font-size: 0.9rem; color: var(--accent-green);">✅ Đúng</span>' : '<span style="font-size: 0.9rem; color: var(--accent-red);">❌ Sai</span>')}
+        <div style="background: ${bgColor}; border: 1px solid ${borderColor}; border-radius: var(--radius-md); padding: 18px; margin-bottom: 12px;">
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+            <span style="font-size: 1.05rem; font-weight: 700; padding: 5px 14px; border-radius: 12px; background: var(--gradient-btn); color: white;">Câu ${index + 1}</span>
+            ${studentAnswer === null ? '<span style="font-size: 1.05rem; color: var(--text-muted);">⚪ Chưa trả lời</span>' : (isCorrect ? '<span style="font-size: 1.05rem; color: var(--accent-green);">✅ Đúng</span>' : '<span style="font-size: 1.05rem; color: var(--accent-red);">❌ Sai</span>')}
           </div>
-          ${q.passage ? `<div class="passage-richtext" style="background: rgba(99,102,241,0.08); border-left: 3px solid var(--accent-purple); padding: 12px 16px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; margin-bottom: 12px; font-size: 1rem; color: var(--text-secondary); line-height: 1.7;">${q.passage}</div>` : ''}
-          <div style="font-weight: 600; margin-bottom: 10px; font-size: 1.05rem;">${escapeHtml(q.question)}</div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          ${q.passage ? `<div class="passage-richtext" style="background: rgba(99,102,241,0.08); border-left: 3px solid var(--accent-purple); padding: 14px 18px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; margin-bottom: 14px; font-size: 1.15rem; color: var(--text-secondary); line-height: 1.8;">${q.passage}</div>` : ''}
+          <div style="font-weight: 600; margin-bottom: 12px; font-size: 1.2rem;">${escapeHtml(q.question)}</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
             ${['A', 'B', 'C', 'D'].map(l => {
-        let optStyle = 'padding: 10px 14px; border-radius: 8px; font-size: 1rem; ';
+        let optStyle = 'padding: 12px 16px; border-radius: 8px; font-size: 1.15rem; ';
         if (l === q.correctAnswer) {
           optStyle += 'background: rgba(16,185,129,0.15); border: 1px solid var(--accent-green); color: var(--accent-green);';
         } else if (l === studentAnswer && !isCorrect) {
