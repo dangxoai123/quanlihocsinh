@@ -1774,3 +1774,142 @@ h3 {
   font-weight: 700;
   color: var(--accent-cyan);
 }
+
+/* ===== MOBILE RESPONSIVE ===== */
+@media (max-width: 768px) {
+
+  /* Sidebar */
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .main-content {
+    margin-left: 0;
+    padding: 16px;
+  }
+
+  .mobile-menu-btn {
+    display: flex;
+  }
+
+  .page-title {
+    font-size: 1.4rem;
+  }
+
+  /* Exam section */
+  .exam-header {
+    padding: 8px 12px;
+  }
+
+  .exam-title-text {
+    font-size: 0.8rem;
+  }
+
+  .exam-body {
+    padding: 12px;
+  }
+
+  .question-badge {
+    font-size: 0.7rem;
+    padding: 2px 8px;
+  }
+
+  .question-text {
+    font-size: 0.85rem;
+  }
+
+  .answer-option {
+    padding: 10px 12px;
+    font-size: 0.82rem;
+  }
+
+  .answer-circle {
+    width: 24px;
+    height: 24px;
+    font-size: 0.75rem;
+  }
+
+  .answer-text {
+    font-size: 0.82rem;
+  }
+
+  .exam-nav .btn {
+    font-size: 0.8rem;
+    padding: 8px 14px;
+  }
+
+  /* Nav panel */
+  .question-nav-panel {
+    padding: 8px 16px;
+    gap: 8px;
+  }
+
+  .q-nav-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 0.75rem;
+  }
+
+  /* Popup */
+  .confirm-modal {
+    margin: 16px;
+    padding: 20px;
+  }
+
+  .confirm-title {
+    font-size: 1.1rem;
+  }
+
+  .confirm-text {
+    font-size: 0.8rem !important;
+    line-height: 1.6 !important;
+  }
+
+  /* Cards & forms */
+  .card {
+    padding: 16px;
+  }
+
+  .form-input {
+    padding: 10px 12px;
+    font-size: 0.85rem;
+  }
+
+  .btn {
+    padding: 10px 20px;
+    font-size: 0.85rem;
+  }
+
+  .btn-lg {
+    padding: 12px 28px;
+    font-size: 0.95rem;
+  }
+
+  /* Student entry */
+  .student-entry-box {
+    padding: 0 12px;
+  }
+
+  .student-entry-header h1 {
+    font-size: 1.4rem;
+  }
+
+  /* Landing page */
+  .landing-title {
+    font-size: 2rem;
+  }
+
+  .landing-cards {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .role-card {
+    padding: 28px 20px;
+  }
+}
