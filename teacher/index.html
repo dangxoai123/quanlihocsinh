@@ -152,6 +152,13 @@
                                         nhóm đọc hiểu</button>
                                 </div>
                             </div>
+                            <div id="questionPagination" class="question-pagination hidden">
+                                <button type="button" class="btn btn-outline btn-sm" id="prevQuestionBtn"
+                                    onclick="navigateAdminQuestion(-1)">← Trước</button>
+                                <span class="question-page-info" id="questionPageInfo">Câu 0/0</span>
+                                <button type="button" class="btn btn-outline btn-sm" id="nextQuestionBtn"
+                                    onclick="navigateAdminQuestion(1)">Tiếp →</button>
+                            </div>
                             <div id="questionsContainer"></div>
                         </div>
                         <div style="display: flex; gap: 12px; margin-top: 24px;">

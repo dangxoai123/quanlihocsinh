@@ -825,6 +825,30 @@ h3 {
   background: var(--bg-secondary);
 }
 
+/* ===== QUESTION PAGINATION (Admin) ===== */
+.question-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: var(--bg-glass);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
+}
+
+.question-page-info {
+  font-size: 0.95rem;
+  font-weight: 700;
+  background: var(--gradient-btn);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  min-width: 80px;
+  text-align: center;
+}
+
 /* ===== RICH TEXT EDITOR ===== */
 .richtext-editor {
   cursor: text;

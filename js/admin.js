@@ -5,6 +5,7 @@
 let currentUser = null;
 let questionsCount = 0;
 let monitorUnsubscribe = null;
+let currentAdminQIndex = 0; // Current visible page in question builder
 
 // ===== INITIALIZATION =====
 document.addEventListener('DOMContentLoaded', () => {
@@ -188,6 +189,9 @@ function addQuestion() {
   `;
   container.appendChild(qDiv);
   updateQuestionNumbers();
+  // Navigate to the newly added question (last page)
+  const allItems = getAdminPageItems();
+  navigateAdminQuestion(0, allItems.length - 1);
 }
 
 function removeQuestion(id) {
@@ -195,6 +199,15 @@ function removeQuestion(id) {
   if (el) {
     el.remove();
     updateQuestionNumbers();
+    // Adjust current index if needed
+    const allItems = getAdminPageItems();
+    if (allItems.length === 0) {
+      currentAdminQIndex = 0;
+      updateAdminPagination();
+    } else {
+      if (currentAdminQIndex >= allItems.length) currentAdminQIndex = allItems.length - 1;
+      navigateAdminQuestion(0, currentAdminQIndex);
+    }
   }
 }
 
@@ -215,6 +228,75 @@ function updateQuestionNumbers() {
   });
   // Keep questionsCount in sync with actual count
   questionsCount = items.length;
+}
+
+// ===== ADMIN QUESTION PAGINATION =====
+function getAdminPageItems() {
+  // Each "page" is a top-level child of questionsContainer (either .question-item or .reading-group)
+  return Array.from(document.getElementById('questionsContainer').children);
+}
+
+function navigateAdminQuestion(direction, absoluteIndex) {
+  const items = getAdminPageItems();
+  if (items.length === 0) {
+    currentAdminQIndex = 0;
+    updateAdminPagination();
+    return;
+  }
+
+  // Hide all items
+  items.forEach(item => item.style.display = 'none');
+
+  // Calculate new index
+  if (absoluteIndex !== undefined) {
+    currentAdminQIndex = absoluteIndex;
+  } else {
+    currentAdminQIndex += direction;
+  }
+
+  // Clamp
+  if (currentAdminQIndex < 0) currentAdminQIndex = 0;
+  if (currentAdminQIndex >= items.length) currentAdminQIndex = items.length - 1;
+
+  // Show current item
+  items[currentAdminQIndex].style.display = '';
+
+  updateAdminPagination();
+}
+
+function updateAdminPagination() {
+  const items = getAdminPageItems();
+  const pagination = document.getElementById('questionPagination');
+  const pageInfo = document.getElementById('questionPageInfo');
+  const prevBtn = document.getElementById('prevQuestionBtn');
+  const nextBtn = document.getElementById('nextQuestionBtn');
+
+  if (items.length === 0) {
+    pagination.classList.add('hidden');
+    return;
+  }
+
+  pagination.classList.remove('hidden');
+
+  // Count total question items (for display)
+  const totalQuestions = document.querySelectorAll('#questionsContainer .question-item').length;
+  // Find question numbers on current page
+  const currentItem = items[currentAdminQIndex];
+  const questionsOnPage = currentItem.querySelectorAll('.question-number');
+  let label = '';
+  if (questionsOnPage.length === 1) {
+    label = questionsOnPage[0].textContent;
+  } else if (questionsOnPage.length > 1) {
+    const first = questionsOnPage[0].textContent;
+    const last = questionsOnPage[questionsOnPage.length - 1].textContent;
+    label = `${first} - ${last}`;
+  } else {
+    label = `${currentAdminQIndex + 1}/${items.length}`;
+  }
+  pageInfo.textContent = `${label} (Tổng: ${totalQuestions})`;
+
+  prevBtn.disabled = currentAdminQIndex <= 0;
+  nextBtn.disabled = currentAdminQIndex >= items.length - 1;
 }
 
 // ===== READING COMPREHENSION GROUP =====
@@ -247,6 +329,10 @@ function addReadingGroup() {
 
   // Add first question to group
   addGroupQuestion(readingGroupCount);
+
+  // Navigate to the newly added group (last page)
+  const allItems = getAdminPageItems();
+  navigateAdminQuestion(0, allItems.length - 1);
 }
 
 function addGroupQuestion(groupId) {
@@ -296,6 +382,8 @@ function addGroupQuestion(groupId) {
   `;
   container.appendChild(qDiv);
   updateQuestionNumbers();
+  // Stay on the current reading group page
+  updateAdminPagination();
 }
 
 function removeReadingGroup(groupId) {
@@ -303,6 +391,15 @@ function removeReadingGroup(groupId) {
   if (el) {
     el.remove();
     updateQuestionNumbers();
+    // Adjust pagination
+    const allItems = getAdminPageItems();
+    if (allItems.length === 0) {
+      currentAdminQIndex = 0;
+      updateAdminPagination();
+    } else {
+      if (currentAdminQIndex >= allItems.length) currentAdminQIndex = allItems.length - 1;
+      navigateAdminQuestion(0, currentAdminQIndex);
+    }
   }
 }
 
@@ -409,7 +506,8 @@ async function handleCreateTest(e) {
     document.getElementById('createTestForm').reset();
     document.getElementById('questionsContainer').innerHTML = '';
     questionsCount = 0;
-    addQuestion();
+    currentAdminQIndex = 0;
+    updateAdminPagination();
     document.getElementById('testDuration').value = '45';
 
   } catch (error) {
