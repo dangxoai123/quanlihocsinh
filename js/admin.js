@@ -836,16 +836,16 @@ async function viewStudentDetail(sessionId, testId) {
       const bgColor = studentAnswer === null ? 'var(--bg-glass)' : (isCorrect ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)');
 
       html += `
-        <div style="background: ${bgColor}; border: 1px solid ${borderColor}; border-radius: var(--radius-md); padding: 14px; margin-bottom: 8px;">
-          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-            <span style="font-size: 0.75rem; font-weight: 700; padding: 2px 10px; border-radius: 12px; background: var(--gradient-btn); color: white;">Câu ${index + 1}</span>
-            ${studentAnswer === null ? '<span style="font-size: 0.75rem; color: var(--text-muted);">⚪ Chưa trả lời</span>' : (isCorrect ? '<span style="font-size: 0.75rem; color: var(--accent-green);">✅ Đúng</span>' : '<span style="font-size: 0.75rem; color: var(--accent-red);">❌ Sai</span>')}
+        <div style="background: ${bgColor}; border: 1px solid ${borderColor}; border-radius: var(--radius-md); padding: 16px; margin-bottom: 10px;">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+            <span style="font-size: 0.9rem; font-weight: 700; padding: 4px 12px; border-radius: 12px; background: var(--gradient-btn); color: white;">Câu ${index + 1}</span>
+            ${studentAnswer === null ? '<span style="font-size: 0.9rem; color: var(--text-muted);">⚪ Chưa trả lời</span>' : (isCorrect ? '<span style="font-size: 0.9rem; color: var(--accent-green);">✅ Đúng</span>' : '<span style="font-size: 0.9rem; color: var(--accent-red);">❌ Sai</span>')}
           </div>
-          ${q.passage ? `<div class="passage-richtext" style="background: rgba(99,102,241,0.08); border-left: 3px solid var(--accent-purple); padding: 10px 14px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; margin-bottom: 10px; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6;">${q.passage}</div>` : ''}
-          <div style="font-weight: 600; margin-bottom: 8px; font-size: 0.9rem;">${escapeHtml(q.question)}</div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+          ${q.passage ? `<div class="passage-richtext" style="background: rgba(99,102,241,0.08); border-left: 3px solid var(--accent-purple); padding: 12px 16px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; margin-bottom: 12px; font-size: 1rem; color: var(--text-secondary); line-height: 1.7;">${q.passage}</div>` : ''}
+          <div style="font-weight: 600; margin-bottom: 10px; font-size: 1.05rem;">${escapeHtml(q.question)}</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
             ${['A', 'B', 'C', 'D'].map(l => {
-        let optStyle = 'padding: 6px 10px; border-radius: 6px; font-size: 0.85rem; ';
+        let optStyle = 'padding: 10px 14px; border-radius: 8px; font-size: 1rem; ';
         if (l === q.correctAnswer) {
           optStyle += 'background: rgba(16,185,129,0.15); border: 1px solid var(--accent-green); color: var(--accent-green);';
         } else if (l === studentAnswer && !isCorrect) {
