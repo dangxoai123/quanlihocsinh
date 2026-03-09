@@ -154,7 +154,7 @@ function addQuestion() {
     <button type="button" class="question-remove" onclick="removeQuestion(${questionsCount})" title="Xóa câu hỏi">✕</button>
     <div class="form-group" style="margin-top: 12px;">
       <label class="form-label" style="font-size:0.8rem; color: var(--text-muted);">📄 Đoạn văn (tùy chọn - bỏ trống nếu không cần)</label>
-      <textarea class="form-input q-passage" placeholder="Nhập đoạn văn / bài đọc hiểu nếu có..." rows="3" style="resize:vertical; font-size: 0.9rem;"></textarea>
+      <div class="form-input q-passage richtext-editor" contenteditable="true" data-placeholder="Nhập đoạn văn / bài đọc hiểu nếu có..." style="min-height: 80px; font-size: 0.9rem; line-height: 1.6; white-space: pre-wrap;"></div>
     </div>
     <div class="form-group">
       <input type="text" class="form-input q-text" placeholder="Nhập câu hỏi..." required>
@@ -239,7 +239,7 @@ function addReadingGroup() {
     </div>
     <div class="form-group">
       <label class="form-label" style="font-size: 0.85rem;">📄 Đoạn văn / Bài đọc</label>
-      <textarea class="form-input group-passage" placeholder="Dán đoạn văn / bài đọc hiểu ở đây..." rows="6" style="resize:vertical; font-size: 0.9rem; line-height: 1.6;" required></textarea>
+      <div class="form-input group-passage richtext-editor" contenteditable="true" data-placeholder="Dán đoạn văn / bài đọc hiểu ở đây..." style="min-height: 150px; font-size: 0.9rem; line-height: 1.6; white-space: pre-wrap;"></div>
     </div>
     <div class="group-questions-container"></div>
     <button type="button" class="btn btn-outline btn-sm" onclick="addGroupQuestion(${readingGroupCount})" style="border-color: var(--accent-purple); color: var(--accent-purple); margin-top: 8px;">+ Thêm câu hỏi vào nhóm</button>
@@ -349,12 +349,14 @@ async function handleCreateTest(e) {
     if (groupId) {
       const group = document.getElementById(`reading-group-${groupId}`);
       if (group) {
-        passage = group.querySelector('.group-passage').value.trim();
+        const passageEl = group.querySelector('.group-passage');
+        passage = passageEl ? sanitizeHtml(passageEl.innerHTML).trim() : '';
         instruction = group.querySelector('.group-instruction') ? group.querySelector('.group-instruction').value.trim() : '';
       }
     } else {
       // Standalone question - use its own passage
-      passage = item.querySelector('.q-passage') ? item.querySelector('.q-passage').value.trim() : '';
+      const passageEl = item.querySelector('.q-passage');
+      passage = passageEl ? sanitizeHtml(passageEl.innerHTML).trim() : '';
     }
 
     const options = {};
@@ -457,7 +459,8 @@ function previewTest() {
 
   questionItems.forEach((item, index) => {
     const text = item.querySelector('.q-text').value.trim() || '(Chưa nhập câu hỏi)';
-    const passage = item.querySelector('.q-passage') ? item.querySelector('.q-passage').value.trim() : '';
+    const passageEl = item.querySelector('.q-passage');
+    const passage = passageEl ? sanitizeHtml(passageEl.innerHTML).trim() : '';
     const options = {};
     item.querySelectorAll('.q-option').forEach(opt => {
       options[opt.dataset.option] = opt.value.trim() || '(Chưa nhập)';
@@ -466,7 +469,7 @@ function previewTest() {
 
     html += `
       <div style="background: var(--bg-glass); border: 1px solid var(--border-glass); border-radius: var(--radius-md); padding: 16px; margin-bottom: 12px;">
-        ${passage ? `<div style="background: rgba(99,102,241,0.08); border-left: 3px solid var(--accent-purple); padding: 10px 14px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; margin-bottom: 12px; font-size: 0.88rem; color: var(--text-secondary); line-height: 1.6; white-space: pre-wrap;">${escapeHtml(passage)}</div>` : ''}
+        ${passage ? `<div class="passage-richtext" style="background: rgba(99,102,241,0.08); border-left: 3px solid var(--accent-purple); padding: 10px 14px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; margin-bottom: 12px; font-size: 0.88rem; color: var(--text-secondary); line-height: 1.6;">${passage}</div>` : ''}
         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
           <span class="question-badge" style="margin: 0;">Câu ${index + 1}</span>
           <strong>${escapeHtml(text)}</strong>
@@ -741,7 +744,7 @@ async function viewStudentDetail(sessionId, testId) {
             <span style="font-size: 0.75rem; font-weight: 700; padding: 2px 10px; border-radius: 12px; background: var(--gradient-btn); color: white;">Câu ${index + 1}</span>
             ${studentAnswer === null ? '<span style="font-size: 0.75rem; color: var(--text-muted);">⚪ Chưa trả lời</span>' : (isCorrect ? '<span style="font-size: 0.75rem; color: var(--accent-green);">✅ Đúng</span>' : '<span style="font-size: 0.75rem; color: var(--accent-red);">❌ Sai</span>')}
           </div>
-          ${q.passage ? `<div style="background: rgba(99,102,241,0.08); border-left: 3px solid var(--accent-purple); padding: 10px 14px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; margin-bottom: 10px; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6; white-space: pre-wrap;">${escapeHtml(q.passage)}</div>` : ''}
+          ${q.passage ? `<div class="passage-richtext" style="background: rgba(99,102,241,0.08); border-left: 3px solid var(--accent-purple); padding: 10px 14px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; margin-bottom: 10px; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6;">${q.passage}</div>` : ''}
           <div style="font-weight: 600; margin-bottom: 8px; font-size: 0.9rem;">${escapeHtml(q.question)}</div>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
             ${['A', 'B', 'C', 'D'].map(l => {
@@ -991,6 +994,31 @@ function escapeHtml(text) {
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;
+}
+
+// Sanitize HTML - only allow safe formatting tags
+function sanitizeHtml(html) {
+  if (!html) return '';
+  const temp = document.createElement('div');
+  temp.innerHTML = html;
+  // Remove script, style, iframe, etc.
+  temp.querySelectorAll('script, style, iframe, object, embed, form, link').forEach(el => el.remove());
+  // Clean up Google Docs spans but keep formatting
+  return temp.innerHTML
+    .replace(/<(?!\/?(b|i|u|strong|em|br|p|span|sub|sup|ul|ol|li)\b)[^>]+>/gi, '')
+    .replace(/\sclass="[^"]*"/gi, '')
+    .replace(/\sid="[^"]*"/gi, '')
+    .replace(/\sstyle="[^"]*"/gi, (match) => {
+      // Only keep font-weight and font-style from styles
+      const bold = /font-weight\s*:\s*(bold|[7-9]00)/i.test(match);
+      const italic = /font-style\s*:\s*italic/i.test(match);
+      const underline = /text-decoration[^"]*underline/i.test(match);
+      let kept = [];
+      if (bold) kept.push('font-weight:bold');
+      if (italic) kept.push('font-style:italic');
+      if (underline) kept.push('text-decoration:underline');
+      return kept.length > 0 ? ` style="${kept.join(';')}"` : '';
+    });
 }
 
 // ===== CUSTOM CONFIRM MODAL =====

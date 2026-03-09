@@ -218,7 +218,7 @@ function renderQuestions() {
         // Always show passage for every question (student views one at a time)
         const passageHtml = q.passage ? `
           ${q.instruction ? `<div style="font-style: italic; color: var(--text-muted); font-size: 0.85rem; margin: 8px 0;">${escapeHtml(q.instruction)}</div>` : ''}
-          <div style="background: rgba(99,102,241,0.08); border-left: 3px solid var(--accent-purple); padding: 12px 16px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; margin: 12px 0; font-size: 0.9rem; color: var(--text-secondary); line-height: 1.7; white-space: pre-wrap; max-height: 300px; overflow-y: auto;">${escapeHtml(q.passage)}</div>
+          <div class="passage-richtext" style="background: rgba(99,102,241,0.08); border-left: 3px solid var(--accent-purple); padding: 12px 16px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; margin: 12px 0; font-size: 0.9rem; color: var(--text-secondary); line-height: 1.7; max-height: 300px; overflow-y: auto;">${q.passage}</div>
         ` : '';
 
         card.innerHTML = `

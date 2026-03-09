@@ -825,6 +825,54 @@ h3 {
   background: var(--bg-secondary);
 }
 
+/* ===== RICH TEXT EDITOR ===== */
+.richtext-editor {
+  cursor: text;
+  overflow-y: auto;
+}
+
+.richtext-editor:empty:before {
+  content: attr(data-placeholder);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.richtext-editor:focus {
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  outline: none;
+}
+
+.richtext-editor b,
+.richtext-editor strong {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.richtext-editor i,
+.richtext-editor em {
+  font-style: italic;
+}
+
+.richtext-editor u {
+  text-decoration: underline;
+}
+
+/* ===== PASSAGE RICH TEXT DISPLAY ===== */
+.passage-richtext b,
+.passage-richtext strong {
+  font-weight: 700;
+}
+
+.passage-richtext i,
+.passage-richtext em {
+  font-style: italic;
+}
+
+.passage-richtext u {
+  text-decoration: underline;
+}
+
 /* ===== MONITORING ===== */
 .monitor-grid {
   display: grid;
