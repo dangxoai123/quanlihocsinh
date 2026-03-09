@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Admin Dashboard - Quản lý bài kiểm tra tiếng Anh">
+    <title>Admin Dashboard - English Test Online</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👨‍🏫</text></svg>">
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+
+<body>
+    <div class="bg-animated"></div>
+
+    <!-- ===== LOGIN SECTION ===== -->
+    <div id="loginSection" class="login-container">
+        <div class="login-box">
+            <div class="card">
+                <div class="login-header">
+                    <div style="font-size: 3rem; margin-bottom: 12px;">👨‍🏫</div>
+                    <h1>Đăng Nhập Admin</h1>
+                    <p>Vui lòng đăng nhập để quản lý bài kiểm tra</p>
+                </div>
+                <div id="loginFormContainer">
+                    <form class="login-form" id="loginForm">
+                        <div class="form-group">
+                            <label class="form-label">📧 Email</label>
+                            <input type="email" class="form-input" id="loginEmail" placeholder="admin@example.com"
+                                required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">🔒 Mật khẩu</label>
+                            <input type="password" class="form-input" id="loginPassword" placeholder="••••••••"
+                                required>
+                        </div>
+                        <div id="loginError" class="alert-bar alert-danger hidden"></div>
+                        <button type="submit" class="btn btn-primary btn-lg" id="loginBtn">Đăng Nhập</button>
+                    </form>
+                    <div style="text-align: center; margin-top: 16px;">
+                        <button class="btn btn-outline btn-sm" id="toggleRegister">Tạo tài khoản mới</button>
+                    </div>
+                </div>
+                <div id="registerFormContainer" class="hidden">
+                    <div class="login-header" style="margin-bottom: 16px;">
+                        <div style="font-size: 3rem; margin-bottom: 12px;">📝</div>
+                        <h1>Tạo Tài Khoản</h1>
+                        <p>Đăng ký tài khoản admin mới</p>
+                    </div>
+                    <form class="login-form" id="registerForm">
+                        <div class="form-group">
+                            <label class="form-label">📧 Email</label>
+                            <input type="email" class="form-input" id="regEmail" placeholder="admin@example.com"
+                                required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">🔒 Mật khẩu (ít nhất 6 ký tự)</label>
+                            <input type="password" class="form-input" id="regPassword" placeholder="••••••••"
+                                minlength="6" required>
+                        </div>
+                        <div id="regError" class="alert-bar alert-danger hidden"></div>
+                        <div id="regSuccess" class="alert-bar alert-success hidden"></div>
+                        <button type="submit" class="btn btn-success btn-lg">Đăng Ký</button>
+                    </form>
+                    <div style="text-align: center; margin-top: 16px;">
+                        <button class="btn btn-outline btn-sm" id="toggleLogin">← Quay lại đăng nhập</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== DASHBOARD SECTION ===== -->
+    <div id="dashboardSection" class="dashboard hidden">
+        <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo">
+                <span>📝</span>
+                <span>English Test</span>
+            </div>
+            <nav class="sidebar-nav">
+                <button class="nav-item active" data-tab="create" id="navCreate">
+                    <span class="nav-item-icon">➕</span>
+                    <span>Tạo Bài Thi</span>
+                </button>
+                <button class="nav-item" data-tab="monitor" id="navMonitor">
+                    <span class="nav-item-icon">📡</span>
+                    <span>Giám Sát</span>
+                </button>
+                <button class="nav-item" data-tab="history" id="navHistory">
+                    <span class="nav-item-icon">📋</span>
+                    <span>Lịch Sử</span>
+                </button>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="nav-item" id="logoutBtn">
+                    <span class="nav-item-icon">🚪</span>
+                    <span>Đăng Xuất</span>
+                </button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <!-- TAB 1: CREATE TEST -->
+            <div class="tab-content active" id="tabCreate">
+                <div class="page-header">
+                    <h1 class="page-title">➕ Tạo Bài Kiểm Tra Mới</h1>
+                    <p class="page-subtitle">Tạo bài thi trắc nghiệm tiếng Anh cho học sinh</p>
+                </div>
+                <div class="card" style="max-width: 900px;">
+                    <form id="createTestForm" novalidate>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                            <div class="form-group">
+                                <label class="form-label">📌 Tiêu đề bài thi</label>
+                                <input type="text" class="form-input" id="testTitle"
+                                    placeholder="VD: Kiểm tra Unit 5 - Lớp 10" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">📚 Môn học / Chủ đề</label>
+                                <input type="text" class="form-input" id="testSubject" placeholder="VD: Tiếng Anh 10"
+                                    required>
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                            <div class="form-group">
+                                <label class="form-label">⏱️ Thời gian làm bài (phút)</label>
+                                <input type="number" class="form-input" id="testDuration" min="1" max="180" value="45"
+                                    required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">📷 Yêu cầu camera</label>
+                                <select class="form-select" id="testCamera">
+                                    <option value="true">Bắt buộc bật camera</option>
+                                    <option value="false">Không yêu cầu</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div style="border-top: 1px solid var(--border-glass); padding-top: 20px; margin-top: 8px;">
+                            <div
+                                style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                                <h3 style="font-size: 1.1rem;">📝 Câu hỏi</h3>
+                                <div style="display: flex; gap: 8px;">
+                                    <button type="button" class="btn btn-outline btn-sm" id="addQuestionBtn">+ Thêm câu
+                                        hỏi</button>
+                                    <button type="button" class="btn btn-outline btn-sm" id="addReadingGroupBtn"
+                                        style="border-color: var(--accent-purple); color: var(--accent-purple);">📄 Thêm
+                                        nhóm đọc hiểu</button>
+                                </div>
+                            </div>
+                            <div id="questionsContainer"></div>
+                        </div>
+                        <div style="display: flex; gap: 12px; margin-top: 24px;">
+                            <button type="submit" class="btn btn-primary btn-lg" id="publishTestBtn">🚀 Đăng Bài
+                                Thi</button>
+                            <button type="button" class="btn btn-outline btn-lg" id="previewTestBtn">👁️ Xem
+                                trước</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- TAB 2: MONITOR -->
+            <div class="tab-content" id="tabMonitor">
+                <div class="page-header">
+                    <h1 class="page-title">📡 Giám Sát Thời Gian Thực</h1>
+                    <p class="page-subtitle">Theo dõi học sinh đang làm bài thi và camera trực tiếp</p>
+                </div>
+                <div class="form-group" style="max-width: 400px; margin-bottom: 24px;">
+                    <label class="form-label">Chọn bài thi để giám sát</label>
+                    <select class="form-select" id="monitorTestSelect">
+                        <option value="">-- Chọn bài thi --</option>
+                    </select>
+                </div>
+                <div class="stats-row" id="monitorStats">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">🎓</div>
+                        <div>
+                            <div class="stat-value" id="totalStudents">0</div>
+                            <div class="stat-label">Tổng học sinh</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">✅</div>
+                        <div>
+                            <div class="stat-value" id="activeStudents">0</div>
+                            <div class="stat-label">Đang làm bài</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon purple">📤</div>
+                        <div>
+                            <div class="stat-value" id="completedStudents">0</div>
+                            <div class="stat-label">Đã nộp bài</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon red">⚠️</div>
+                        <div>
+                            <div class="stat-value" id="cheatingStudents">0</div>
+                            <div class="stat-label">Vi phạm / Hủy</div>
+                        </div>
+                    </div>
+                </div>
+                <div id="cheatingAlerts"></div>
+                <h3 style="margin-bottom: 16px; font-size: 1.1rem;">📷 Camera Học Sinh</h3>
+                <div class="monitor-grid" id="monitorGrid">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📡</div>
+                        <p class="empty-state-text">Chọn bài thi để bắt đầu giám sát</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: HISTORY -->
+            <div class="tab-content" id="tabHistory">
+                <div class="page-header"
+                    style="display: flex; align-items: flex-start; justify-content: space-between;">
+                    <div>
+                        <h1 class="page-title">📋 Lịch Sử Bài Thi</h1>
+                        <p class="page-subtitle">Xem lại tất cả bài thi đã tạo và kết quả học sinh</p>
+                    </div>
+                    <button class="btn btn-danger btn-sm" id="deleteAllTestsBtn">🗑️ Xóa tất cả</button>
+                </div>
+                <div class="card">
+                    <div class="table-container">
+                        <table class="data-table" id="historyTable">
+                            <thead>
+                                <tr>
+                                    <th>Tiêu đề</th>
+                                    <th>Môn học</th>
+                                    <th>Thời gian</th>
+                                    <th>Mã truy cập</th>
+                                    <th>Trạng thái</th>
+                                    <th>Ngày tạo</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyBody"></tbody>
+                        </table>
+                    </div>
+                    <div id="historyEmpty" class="empty-state">
+                        <div class="empty-state-icon">📋</div>
+                        <p class="empty-state-text">Chưa có bài thi nào</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Result Detail Modal -->
+    <div id="resultModal" class="modal-overlay hidden">
+        <div class="modal">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h2 class="modal-title" id="resultModalTitle">Kết quả bài thi</h2>
+                <button class="btn btn-icon btn-outline"
+                    onclick="document.getElementById('resultModal').classList.add('hidden')">✕</button>
+            </div>
+            <div id="resultModalContent"></div>
+        </div>
+    </div>
+
+    <!-- ===== CONFIRM MODAL ===== -->
+    <div id="confirmModal" class="confirm-overlay hidden">
+        <div class="confirm-modal">
+            <div class="confirm-icon" id="confirmIcon">🗑️</div>
+            <h2 class="confirm-title" id="confirmTitle">Xác nhận</h2>
+            <p class="confirm-text" id="confirmText"></p>
+            <div class="confirm-actions">
+                <button class="btn btn-outline" id="confirmCancel">Hủy</button>
+                <button class="btn btn-danger" id="confirmOk">🗑️ Xóa</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/admin.js"></script>
+</body>
+
+</html>
