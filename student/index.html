@@ -76,8 +76,8 @@
                 <p style="color: var(--text-secondary); margin-bottom: 24px;">
                     Bài thi này yêu cầu bật camera để giám sát. Vui lòng cho phép truy cập camera để tiếp tục.
                 </p>
-                <video id="cameraPreview" autoplay playsinline muted
-                    style="width: 100%; max-width: 400px; border-radius: var(--radius-md); margin-bottom: 16px; transform: scaleX(-1);"></video>
+                <video id="cameraPreview" autoplay playsinline webkit-playsinline muted
+                    style="width: 1px; height: 1px; opacity: 0; position: absolute;"></video>
                 <div id="cameraError" class="alert-bar alert-danger hidden"></div>
                 <button class="btn btn-primary btn-lg" id="allowCameraBtn" style="width: 100%;">✅ Đã bật camera - Bắt
                     đầu thi</button>
@@ -114,8 +114,8 @@
                 onclick="navigateToQuestion(currentQuestionIndex + 1)">→</button>
         </div>
         <div class="exam-camera-preview" id="examCameraPreview" style="display: none;">
-            <video id="examCameraVideo" autoplay playsinline muted></video>
-            <span class="camera-label">📷 Camera ON</span>
+            <video id="examCameraVideo" autoplay playsinline webkit-playsinline muted
+                style="width: 1px; height: 1px; opacity: 0;"></video>
         </div>
         <canvas id="snapshotCanvas" style="display: none;"></canvas>
     </div>
