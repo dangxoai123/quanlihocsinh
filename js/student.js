@@ -188,9 +188,7 @@ function startExam() {
 
 function renderQuestions() {
     const container = document.getElementById('questionsDisplay');
-    const navPanel = document.getElementById('questionNavPanel');
     container.innerHTML = '';
-    navPanel.innerHTML = '';
 
     currentTest.questions.forEach((q, index) => {
         // Question card
@@ -237,7 +235,7 @@ function renderQuestions() {
     });
 
     updateProgress();
-    updateNavCounter();
+    updateNavWindow();
 }
 
 function navigateToQuestion(index) {
@@ -253,12 +251,38 @@ function navigateToQuestion(index) {
     currentQuestionIndex = index;
     document.getElementById(`exam-q-${index}`).style.display = 'block';
 
-    updateNavCounter();
+    updateNavWindow();
 }
 
-function updateNavCounter() {
+function updateNavWindow() {
     const total = currentTest.questions.length;
-    document.getElementById('navCounter').textContent = `${currentQuestionIndex + 1}/${total}`;
+    const navWindow = document.getElementById('navWindow');
+    navWindow.innerHTML = '';
+
+    // Calculate window range: 2 before + current + 2 after
+    let start = currentQuestionIndex - 2;
+    let end = currentQuestionIndex + 2;
+
+    // Adjust if near edges
+    if (start < 0) {
+        end = Math.min(end - start, total - 1);
+        start = 0;
+    }
+    if (end >= total) {
+        start = Math.max(start - (end - total + 1), 0);
+        end = total - 1;
+    }
+
+    for (let i = start; i <= end; i++) {
+        const btn = document.createElement('button');
+        btn.className = 'q-nav-btn';
+        if (i === currentQuestionIndex) btn.classList.add('current');
+        if (answers[i]) btn.classList.add('answered');
+        btn.textContent = i + 1;
+        btn.onclick = () => navigateToQuestion(i);
+        navWindow.appendChild(btn);
+    }
+
     document.getElementById('navPrevBtn').disabled = currentQuestionIndex <= 0;
     document.getElementById('navNextBtn').disabled = currentQuestionIndex >= total - 1;
 }
@@ -273,8 +297,8 @@ function selectAnswer(questionIndex, answer) {
         if (el) el.classList.toggle('selected', l === answer);
     });
 
-    // Update nav button
-    document.getElementById(`nav-btn-${questionIndex}`).classList.add('answered');
+    // Update nav window to reflect answered status
+    updateNavWindow();
 
     // Save to Firestore
     if (sessionId) {
