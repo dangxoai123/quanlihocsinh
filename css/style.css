@@ -767,6 +767,22 @@ h3 {
   background: rgba(239, 68, 68, 0.15);
 }
 
+.reading-group-remove {
+  background: none;
+  border: none;
+  color: var(--accent-red);
+  cursor: pointer;
+  font-size: 1.2rem;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  transition: var(--transition);
+  flex-shrink: 0;
+}
+
+.reading-group-remove:hover {
+  background: rgba(239, 68, 68, 0.15);
+}
+
 .options-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

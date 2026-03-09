@@ -312,7 +312,7 @@ function addReadingGroup() {
   groupDiv.innerHTML = `
     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
       <h4 style="color: var(--accent-purple); font-size: 1rem; display: flex; align-items: center; gap: 6px;">📄 Nhóm Đọc Hiểu</h4>
-      <button type="button" class="question-remove" onclick="removeReadingGroup(${readingGroupCount})" title="Xóa nhóm">✕</button>
+      <button type="button" class="reading-group-remove" onclick="removeReadingGroup(${readingGroupCount})" title="Xóa nhóm">✕</button>
     </div>
     <div class="form-group">
       <label class="form-label" style="font-size: 0.85rem;">Yêu cầu / Đề bài</label>
