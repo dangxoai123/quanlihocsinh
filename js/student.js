@@ -219,16 +219,32 @@ function renderQuestions() {
             'word-break: break-word',
         ].join(';');
 
-        const cleanedExam = passageText
-            .replace(/&nbsp;/g, ' ')
-            .replace(/\u00a0/g, ' ')
-            .replace(/ {2,}/g, ' ');
+        // Clean the passage: use DOM to strip any leaked <style>/<script> content
+        const cleanTmp = document.createElement('div');
+        cleanTmp.innerHTML = passageText;
+        cleanTmp.querySelectorAll('style, script, head, meta, link').forEach(el => el.remove());
 
-        // If examText is HTML store it as-is; if plain text, preserve line breaks
-        if (/<[a-z]/i.test(cleanedExam)) {
+        // Get plain text, filter out CSS-looking lines (from old Word pastes)
+        const isHtml = cleanTmp.children.length > 0;
+        let cleanedExam;
+        if (isHtml) {
+            // Has real HTML elements — render as HTML after style cleanup
+            cleanTmp.querySelectorAll('br').forEach(b => b.replaceWith('\n'));
+            cleanedExam = cleanTmp.innerHTML
+                .replace(/&nbsp;/g, ' ')
+                .replace(/\u00a0/g, ' ')
+                .replace(/ {2,}/g, ' ');
             examPanel.innerHTML = cleanedExam;
         } else {
-            examPanel.textContent = cleanedExam;
+            // Plain text — filter CSS-looking lines then display
+            const filteredLines = passageText
+                .split('\n')
+                .filter(l => !/^mso-|^font-|^margin|^padding|^line-height|^\s*}|^\s*\{/.test(l.trim()))
+                .join('\n')
+                .replace(/&nbsp;/g, ' ')
+                .replace(/\u00a0/g, ' ')
+                .replace(/ {2,}/g, ' ');
+            examPanel.textContent = filteredLines;
             examPanel.style.whiteSpace = 'pre-wrap';
         }
 

@@ -300,19 +300,52 @@ function renderAnswerInputs() {
 
 // ===== EXAM CONTENT PARSER =====
 /**
+ * Strips Word CSS junk from HTML, returns clean HTML string
+ */
+function cleanExamHtml(html) {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html || '';
+  tmp.querySelectorAll('style, script, head, meta, link, iframe').forEach(el => el.remove());
+  tmp.querySelectorAll('[style]').forEach(el => {
+    const s = el.style;
+    const bold = s.fontWeight === 'bold' || parseInt(s.fontWeight) >= 700;
+    const italic = s.fontStyle === 'italic';
+    const underline = s.textDecoration && s.textDecoration.includes('underline');
+    el.removeAttribute('style');
+    if (bold) el.style.fontWeight = 'bold';
+    if (italic) el.style.fontStyle = 'italic';
+    if (underline) el.style.textDecoration = 'underline';
+  });
+  tmp.querySelectorAll('[class],[id]').forEach(el => {
+    el.removeAttribute('class');
+    el.removeAttribute('id');
+  });
+  // nbsp → space, collapse spaces
+  return tmp.innerHTML
+    .replace(/&nbsp;/g, ' ')
+    .replace(/\u00a0/g, ' ')
+    .replace(/ {2,}/g, ' ');
+}
+
+/**
  * Automatically parses full exam HTML into:
  *   passage  – the reading text before any questions
  *   questions – array of { text, options: {A,B,C,D} }
  */
 function parseExamContent(htmlContent) {
-  // 1. Convert HTML to plain text, preserving line breaks
+  // 1. Use DOM to cleanly extract text (removes <style>/<script> WITH their content)
   const tmp = document.createElement('div');
-  tmp.innerHTML = (htmlContent || '')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/\u00a0/g, ' ')
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<\/p>/gi, '\n')
-    .replace(/<[^>]+>/g, '');
+  tmp.innerHTML = htmlContent || '';
+
+  // Remove elements whose CONTENT should also be discarded
+  tmp.querySelectorAll('style, script, head, meta, link, iframe, img').forEach(el => el.remove());
+
+  // Convert <br> and block-end tags to newline markers before extracting text
+  tmp.querySelectorAll('br').forEach(br => br.replaceWith('\n'));
+  tmp.querySelectorAll('p, div, li, tr').forEach(block => {
+    block.after('\n');
+  });
+
   const rawText = tmp.textContent || tmp.innerText || '';
 
   const lines = rawText
@@ -434,7 +467,7 @@ async function handleCreateTest(e) {
       subject,
       duration,
       requireCamera,
-      examText: parsed.passage || rawHtml,   // passage text only
+      examText: cleanExamHtml(rawHtml),   // full exam with Word CSS stripped
       questions,
       accessCode,
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
