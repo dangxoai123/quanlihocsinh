@@ -56,23 +56,57 @@ function setupEventListeners() {
   renderAnswerInputs();
 
   // ===== PASTE HANDLER for exam text editor =====
-  // Strips bloated Word/Google-Docs HTML to prevent browser freeze
+  // Keeps bold/italic/underline but strips font-family, size, color to stay clean
   document.getElementById('examFullText').addEventListener('paste', function (e) {
     e.preventDefault();
     const clipData = e.clipboardData || window.clipboardData;
+    const html = clipData.getData('text/html');
 
-    // Try to get plain text first (fastest)
-    let text = clipData.getData('text/plain');
-
-    if (text) {
-      // Insert as plain text — no heavy HTML parsing
-      document.execCommand('insertText', false, text);
-    } else {
-      // Fallback: strip HTML to plain text
-      const html = clipData.getData('text/html') || '';
+    if (html) {
+      // Parse HTML, clean styles but keep formatting tags
       const tmp = document.createElement('div');
       tmp.innerHTML = html;
-      document.execCommand('insertText', false, tmp.innerText);
+
+      // Remove all elements that are not useful formatting
+      tmp.querySelectorAll('script,style,iframe,meta,link,head,table,img').forEach(el => el.remove());
+
+      // Walk all elements and strip dangerous/cosmetic styles, keep only bold/italic/underline
+      tmp.querySelectorAll('[style]').forEach(el => {
+        const s = el.style;
+        const bold = s.fontWeight === 'bold' || parseInt(s.fontWeight) >= 700;
+        const italic = s.fontStyle === 'italic';
+        const underline = s.textDecoration && s.textDecoration.includes('underline');
+        el.removeAttribute('style');
+        if (bold) el.style.fontWeight = 'bold';
+        if (italic) el.style.fontStyle = 'italic';
+        if (underline) el.style.textDecoration = 'underline';
+      });
+
+      // Remove class/id attributes
+      tmp.querySelectorAll('[class],[id]').forEach(el => {
+        el.removeAttribute('class');
+        el.removeAttribute('id');
+      });
+
+      // Replace <span> wrappers that have no style left with their inner content
+      tmp.querySelectorAll('span').forEach(span => {
+        if (!span.getAttribute('style')) {
+          span.replaceWith(...span.childNodes);
+        }
+      });
+
+      // Replace <p> / <div> block elements with content + <br>
+      tmp.querySelectorAll('p, div').forEach(block => {
+        const br = document.createElement('br');
+        block.after(br);
+        block.replaceWith(...block.childNodes);
+      });
+
+      document.execCommand('insertHTML', false, tmp.innerHTML);
+    } else {
+      // Fallback: plain text
+      const text = clipData.getData('text/plain') || '';
+      document.execCommand('insertText', false, text);
     }
   });
 
