@@ -190,6 +190,29 @@ function renderQuestions() {
     const container = document.getElementById('questionsDisplay');
     container.innerHTML = '';
 
+    // ===== EXAM TEXT PANEL (if teacher used new input method) =====
+    if (currentTest.examText) {
+        const examPanel = document.createElement('div');
+        examPanel.id = 'examTextPanel';
+        examPanel.style.cssText = 'background: rgba(99,102,241,0.07); border: 1px solid var(--border-glass); border-left: 4px solid var(--accent-purple); border-radius: var(--radius-md); padding: 20px 22px; margin-bottom: 24px; font-size: 0.93rem; line-height: 1.9; white-space: pre-wrap; font-family: "Courier New", monospace; max-height: 420px; overflow-y: auto;';
+        examPanel.innerHTML = currentTest.examText;
+
+        // Collapsible toggle
+        const toggleBtn = document.createElement('button');
+        toggleBtn.className = 'btn btn-outline btn-sm';
+        toggleBtn.style.cssText = 'margin-bottom: 10px; font-size: 0.8rem;';
+        toggleBtn.textContent = '📄 Ẩn / Hiện đề thi';
+        toggleBtn.onclick = () => {
+            examPanel.style.display = examPanel.style.display === 'none' ? '' : 'none';
+        };
+
+        const wrapper = document.createElement('div');
+        wrapper.style.marginBottom = '20px';
+        wrapper.appendChild(toggleBtn);
+        wrapper.appendChild(examPanel);
+        container.appendChild(wrapper);
+    }
+
     currentTest.questions.forEach((q, index) => {
         // Question card
         const card = document.createElement('div');
@@ -213,16 +236,21 @@ function renderQuestions() {
             }
         });
 
-        // Always show passage for every question (student views one at a time)
-        const passageHtml = q.passage ? `
+        // Show passage only for old-format tests (non-examText based)
+        const passageHtml = (!currentTest.examText && q.passage) ? `
           ${q.instruction ? `<div style="font-style: italic; color: var(--text-muted); font-size: 0.85rem; margin: 8px 0;">${escapeHtml(q.instruction)}</div>` : ''}
           <div class="passage-richtext" style="background: rgba(99,102,241,0.08); border-left: 3px solid var(--accent-purple); padding: 12px 16px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; margin: 12px 0; font-size: 0.9rem; color: var(--text-secondary); line-height: 1.7; max-height: 300px; overflow-y: auto;">${q.passage}</div>
         ` : '';
 
+        // For new examText-based tests, show only the question number (no question text label)
+        const questionLabel = currentTest.examText
+            ? `<span class="question-badge">Câu ${index + 1}/${currentTest.questions.length}</span>`
+            : `<span class="question-badge">Câu ${index + 1}/${currentTest.questions.length}</span>`;
+
         card.innerHTML = `
-      <span class="question-badge">Câu ${index + 1}/${currentTest.questions.length}</span>
+      ${questionLabel}
       ${passageHtml}
-      <p class="question-text">${escapeHtml(q.question)}</p>
+      ${!currentTest.examText ? `<p class="question-text">${escapeHtml(q.question)}</p>` : ''}
       <div class="answer-options">${optionsHtml}</div>
       <div class="exam-nav">
         ${index > 0 ? `<button class="btn btn-outline" onclick="navigateToQuestion(${index - 1})">← Câu trước</button>` : '<div></div>'}

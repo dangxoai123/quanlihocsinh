@@ -1,29 +1,29 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
-/* ===== CSS VARIABLES ===== */
+/* ===== CSS VARIABLES – LIGHT THEME ===== */
 :root {
-  --bg-primary: #0a0e1a;
-  --bg-secondary: #111827;
-  --bg-card: rgba(17, 24, 39, 0.8);
-  --bg-glass: rgba(255, 255, 255, 0.05);
-  --border-glass: rgba(255, 255, 255, 0.1);
-  --text-primary: #f1f5f9;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
+  --bg-primary: #f0f4ff;
+  --bg-secondary: #ffffff;
+  --bg-card: rgba(255, 255, 255, 0.92);
+  --bg-glass: rgba(99, 102, 241, 0.06);
+  --border-glass: rgba(99, 102, 241, 0.18);
+  --text-primary: #1e293b;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
   --accent-blue: #3b82f6;
-  --accent-purple: #8b5cf6;
-  --accent-cyan: #06b6d4;
-  --accent-green: #10b981;
-  --accent-red: #ef4444;
-  --accent-orange: #f59e0b;
-  --accent-pink: #ec4899;
-  --gradient-main: linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899);
-  --gradient-card: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
-  --gradient-btn: linear-gradient(135deg, #3b82f6, #8b5cf6);
-  --gradient-danger: linear-gradient(135deg, #ef4444, #dc2626);
-  --gradient-success: linear-gradient(135deg, #10b981, #059669);
-  --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.5);
-  --shadow-glow: 0 0 30px rgba(59, 130, 246, 0.3);
+  --accent-purple: #7c3aed;
+  --accent-cyan: #0891b2;
+  --accent-green: #059669;
+  --accent-red: #dc2626;
+  --accent-orange: #d97706;
+  --accent-pink: #db2777;
+  --gradient-main: linear-gradient(135deg, #3b82f6, #7c3aed, #db2777);
+  --gradient-card: linear-gradient(135deg, rgba(59,130,246,0.08), rgba(124,58,237,0.08));
+  --gradient-btn: linear-gradient(135deg, #3b82f6, #7c3aed);
+  --gradient-danger: linear-gradient(135deg, #dc2626, #b91c1c);
+  --gradient-success: linear-gradient(135deg, #059669, #047857);
+  --shadow-lg: 0 20px 60px rgba(99, 102, 241, 0.15);
+  --shadow-glow: 0 0 30px rgba(59, 130, 246, 0.2);
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
@@ -69,7 +69,7 @@ body {
   position: absolute;
   width: 600px;
   height: 600px;
-  background: radial-gradient(circle, rgba(59, 130, 246, 0.15), transparent 70%);
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.12), transparent 70%);
   top: -200px;
   right: -200px;
   animation: float 15s ease-in-out infinite;
@@ -80,7 +80,7 @@ body {
   position: absolute;
   width: 500px;
   height: 500px;
-  background: radial-gradient(circle, rgba(139, 92, 246, 0.12), transparent 70%);
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.1), transparent 70%);
   bottom: -150px;
   left: -150px;
   animation: float 20s ease-in-out infinite reverse;
@@ -194,7 +194,7 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--bg-primary);
+  background: #e2e8f0;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -397,7 +397,7 @@ h3 {
 }
 
 .form-select option {
-  background: var(--bg-secondary);
+  background: #ffffff;
   color: var(--text-primary);
 }
 
@@ -1124,13 +1124,14 @@ h3 {
   position: sticky;
   top: 0;
   z-index: 50;
-  background: rgba(10, 14, 26, 0.95);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border-glass);
   padding: 16px 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  box-shadow: 0 2px 12px rgba(99,102,241,0.08);
 }
 
 .exam-info {
@@ -1326,7 +1327,7 @@ h3 {
   bottom: 0;
   left: 0;
   right: 0;
-  background: rgba(17, 24, 39, 0.95);
+  background: rgba(255, 255, 255, 0.97);
   backdrop-filter: blur(20px);
   border-top: 1px solid var(--border-glass);
   padding: 12px 24px;
@@ -1335,6 +1336,7 @@ h3 {
   align-items: center;
   gap: 10px;
   justify-content: center;
+  box-shadow: 0 -2px 12px rgba(99,102,241,0.08);
 }
 
 .nav-window {
