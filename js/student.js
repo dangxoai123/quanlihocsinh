@@ -205,11 +205,12 @@ function renderQuestions() {
             'line-height: 1.85',
             'white-space: normal',
             'font-family: Inter, system-ui, sans-serif',
-            'max-height: 380px',
+            'max-height: 60vh',
             'overflow-y: auto',
             'color: #1e293b',
             'word-break: break-word',
         ].join(';');
+
 
 
         // Clean stored HTML: strip &nbsp; and collapse multi-spaces for clean reflow
