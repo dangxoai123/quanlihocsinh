@@ -298,6 +298,72 @@ function renderAnswerInputs() {
 }
 
 
+// ===== EXAM CONTENT PARSER =====
+/**
+ * Automatically parses full exam HTML into:
+ *   passage  – the reading text before any questions
+ *   questions – array of { text, options: {A,B,C,D} }
+ */
+function parseExamContent(htmlContent) {
+  // 1. Convert HTML to plain text, preserving line breaks
+  const tmp = document.createElement('div');
+  tmp.innerHTML = (htmlContent || '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/\u00a0/g, ' ')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n')
+    .replace(/<[^>]+>/g, '');
+  const rawText = tmp.textContent || tmp.innerText || '';
+
+  const lines = rawText
+    .split('\n')
+    .map(l => l.replace(/ {2,}/g, ' ').trim())
+    .filter(l => l.length > 0);
+
+  // 2. Patterns
+  // Question start: "Question N", "Câu N", or bare "N." at line start
+  const reQ = /^(?:Question|Mark the letter[^:]*|Câu|Read[^:]*answer)\s*(\d+)\b/i;
+  // Option line: A. text or A text
+  const reOpt = /^([A-D])[.)\s]\s*(.+)/;
+
+  const passageLines = [];
+  const questions = [];
+  let cur = null;   // current question being built
+  let inQ = false;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
+    const qMatch = line.match(reQ);
+    const optMatch = line.match(reOpt);
+
+    if (qMatch) {
+      // Save previous question
+      if (cur) questions.push(cur);
+      inQ = true;
+      // Question text may be the rest of the line after "Question N:"
+      const afterLabel = line.replace(reQ, '').replace(/^[:.\s]+/, '').trim();
+      cur = { text: afterLabel || `Câu ${questions.length + 1}`, options: {} };
+    } else if (optMatch && inQ && cur) {
+      cur.options[optMatch[1]] = optMatch[2].trim();
+    } else if (inQ && cur && !optMatch) {
+      // Continuation of question text (before options)
+      if (Object.keys(cur.options).length === 0) {
+        cur.text += (cur.text ? ' ' : '') + line;
+      }
+      // After options started, ignore continuation lines
+    } else if (!inQ) {
+      passageLines.push(line);
+    }
+  }
+  if (cur) questions.push(cur);
+
+  return {
+    passage: passageLines.join('\n'),
+    questions
+  };
+}
+
 // ===== CREATE TEST =====
 function generateAccessCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -323,8 +389,8 @@ async function handleCreateTest(e) {
 
   // Read exam text
   const examEl = document.getElementById('examFullText');
-  const examText = examEl.innerHTML.trim();
-  if (!examText || examText === '<br>') {
+  const rawHtml = examEl.innerHTML.trim();
+  if (!rawHtml || rawHtml === '<br>') {
     showToast('Vui lòng nhập nội dung đề thi!', 'warning');
     return;
   }
@@ -336,14 +402,23 @@ async function handleCreateTest(e) {
     return;
   }
 
-  // Build questions array from answer key
+  // AUTO-PARSE: split passage from questions
+  const parsed = parseExamContent(rawHtml);
+
+  if (parsed.questions.length > 0 && parsed.questions.length !== answerSelects.length) {
+    showToast(`⚠️ Đã tìm thấy ${parsed.questions.length} câu hỏi trong đề, nhưng có ${answerSelects.length} ô đáp án. Kiểm tra lại!`, 'warning');
+    // Proceed anyway — teacher can fix
+  }
+
+  // Build questions array: use parsed text+options if available, else fallback
   const questions = [];
   answerSelects.forEach((sel, idx) => {
+    const p = parsed.questions[idx];
     questions.push({
-      question: `Câu ${idx + 1}`,
-      passage: '',
-      instruction: '',
-      options: { A: 'A', B: 'B', C: 'C', D: 'D' },
+      question: p ? p.text : `Câu ${idx + 1}`,
+      options: (p && Object.keys(p.options).length === 4)
+        ? p.options
+        : { A: 'A', B: 'B', C: 'C', D: 'D' },
       correctAnswer: sel.value
     });
   });
@@ -359,7 +434,7 @@ async function handleCreateTest(e) {
       subject,
       duration,
       requireCamera,
-      examText,          // full exam body stored here
+      examText: parsed.passage || rawHtml,   // passage text only
       questions,
       accessCode,
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -375,7 +450,7 @@ async function handleCreateTest(e) {
     examEl.innerHTML = '';
     document.getElementById('answerInputsContainer').innerHTML = '';
     document.getElementById('testDuration').value = '45';
-    renderAnswerInputs(); // reset to default 40 slots
+    renderAnswerInputs();
 
   } catch (error) {
     console.error('Create test error:', error);

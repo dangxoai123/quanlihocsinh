@@ -123,13 +123,20 @@ function captureAndUploadSnapshot() {
     if (!cameraStream || !sessionId) return;
 
     const video = document.getElementById('examCameraVideo');
+    // Don't capture if camera hasn't loaded yet
+    if (!video || video.readyState < 2) return;
+
     const canvas = document.getElementById('snapshotCanvas');
     canvas.width = 320;
     canvas.height = 240;
     const ctx = canvas.getContext('2d');
+
+    // Fill white background first so JPEG doesn't render transparent as black
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, 320, 240);
     ctx.drawImage(video, 0, 0, 320, 240);
 
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.5);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
 
     // Upload to Firestore
     db.collection('sessions').doc(sessionId).update({
@@ -190,8 +197,9 @@ function renderQuestions() {
     const container = document.getElementById('questionsDisplay');
     container.innerHTML = '';
 
-    // ===== EXAM TEXT PANEL (if teacher used new input method) =====
-    if (currentTest.examText) {
+    // ===== PASSAGE PANEL (sticky reading text) =====
+    const passageText = currentTest.examText || '';
+    if (passageText) {
         const examPanel = document.createElement('div');
         examPanel.id = 'examTextPanel';
         examPanel.style.cssText = [
@@ -211,21 +219,23 @@ function renderQuestions() {
             'word-break: break-word',
         ].join(';');
 
-
-
-        // Clean stored HTML: strip &nbsp; and collapse multi-spaces for clean reflow
-        const cleanedExam = (currentTest.examText || '')
+        const cleanedExam = passageText
             .replace(/&nbsp;/g, ' ')
             .replace(/\u00a0/g, ' ')
             .replace(/ {2,}/g, ' ');
-        examPanel.innerHTML = cleanedExam;
 
+        // If examText is HTML store it as-is; if plain text, preserve line breaks
+        if (/<[a-z]/i.test(cleanedExam)) {
+            examPanel.innerHTML = cleanedExam;
+        } else {
+            examPanel.textContent = cleanedExam;
+            examPanel.style.whiteSpace = 'pre-wrap';
+        }
 
-        // Collapsible toggle
         const toggleBtn = document.createElement('button');
         toggleBtn.className = 'btn btn-outline btn-sm';
         toggleBtn.style.cssText = 'margin-bottom: 10px; font-size: 0.8rem;';
-        toggleBtn.textContent = '📄 Ẩn / Hiện đề thi';
+        toggleBtn.textContent = '📄 Ẩn / Hiện đoạn văn';
         toggleBtn.onclick = () => {
             examPanel.style.display = examPanel.style.display === 'none' ? '' : 'none';
         };
@@ -237,44 +247,39 @@ function renderQuestions() {
         container.appendChild(wrapper);
     }
 
+    // Check if options are real text (parsed) or just A/B/C/D placeholders
+    const hasRealOptions = currentTest.questions.length > 0 &&
+        currentTest.questions[0].options &&
+        currentTest.questions[0].options.A !== 'A';
+
     currentTest.questions.forEach((q, index) => {
-        // Question card
         const card = document.createElement('div');
         card.className = 'question-card';
         card.id = `exam-q-${index}`;
         card.style.display = index === 0 ? 'block' : 'none';
 
         let optionsHtml = '';
-        const optionLabels = ['A', 'B', 'C', 'D'];
-        optionLabels.forEach(label => {
-            if (q.options[label]) {
-                const isSelected = answers[index] === label;
-                optionsHtml += `
+        ['A', 'B', 'C', 'D'].forEach(label => {
+            const optText = q.options && q.options[label] ? q.options[label] : label;
+            const isSelected = answers[index] === label;
+            optionsHtml += `
           <label class="answer-option ${isSelected ? 'selected' : ''}" id="opt-${index}-${label}">
             <input type="radio" name="q${index}" value="${label}" ${isSelected ? 'checked' : ''}
                    onchange="selectAnswer(${index}, '${label}')">
             <span class="answer-circle">${label}</span>
-            <span class="answer-text">${escapeHtml(q.options[label])}</span>
-          </label>
-        `;
-            }
+            <span class="answer-text">${escapeHtml(optText)}</span>
+          </label>`;
         });
 
-        // Show passage only for old-format tests (non-examText based)
-        const passageHtml = (!currentTest.examText && q.passage) ? `
-          ${q.instruction ? `<div style="font-style: italic; color: var(--text-muted); font-size: 0.85rem; margin: 8px 0;">${escapeHtml(q.instruction)}</div>` : ''}
-          <div class="passage-richtext" style="background: rgba(99,102,241,0.08); border-left: 3px solid var(--accent-purple); padding: 12px 16px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; margin: 12px 0; font-size: 0.9rem; color: var(--text-secondary); line-height: 1.7; max-height: 300px; overflow-y: auto;">${q.passage}</div>
-        ` : '';
-
-        // For new examText-based tests, show only the question number (no question text label)
-        const questionLabel = currentTest.examText
-            ? `<span class="question-badge">Câu ${index + 1}/${currentTest.questions.length}</span>`
-            : `<span class="question-badge">Câu ${index + 1}/${currentTest.questions.length}</span>`;
+        // Show question text: always for parsed tests; hide for old full-text tests
+        const isPlaceholder = q.question === `Câu ${index + 1}` || q.question === `Question ${index + 1}`;
+        const questionTextHtml = (!isPlaceholder || hasRealOptions)
+            ? `<p class="question-text">${escapeHtml(q.question)}</p>`
+            : '';
 
         card.innerHTML = `
-      ${questionLabel}
-      ${passageHtml}
-      ${!currentTest.examText ? `<p class="question-text">${escapeHtml(q.question)}</p>` : ''}
+      <span class="question-badge">Câu ${index + 1}/${currentTest.questions.length}</span>
+      ${questionTextHtml}
       <div class="answer-options">${optionsHtml}</div>
       <div class="exam-nav">
         ${index > 0 ? `<button class="btn btn-outline" onclick="navigateToQuestion(${index - 1})">← Câu trước</button>` : '<div></div>'}
