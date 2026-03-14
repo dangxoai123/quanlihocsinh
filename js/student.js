@@ -194,7 +194,23 @@ function renderQuestions() {
     if (currentTest.examText) {
         const examPanel = document.createElement('div');
         examPanel.id = 'examTextPanel';
-        examPanel.style.cssText = 'background: rgba(99,102,241,0.07); border: 1px solid var(--border-glass); border-left: 4px solid var(--accent-purple); border-radius: var(--radius-md); padding: 20px 22px; margin-bottom: 24px; font-size: 0.93rem; line-height: 1.9; white-space: pre-wrap; font-family: "Courier New", monospace; max-height: 420px; overflow-y: auto;';
+        examPanel.style.cssText = [
+            'background: rgba(99,102,241,0.06)',
+            'border: 1px solid rgba(99,102,241,0.2)',
+            'border-left: 4px solid #7c3aed',
+            'border-radius: 12px',
+            'padding: 18px 20px',
+            'margin-bottom: 20px',
+            'font-size: 1rem',
+            'line-height: 1.85',
+            'white-space: pre-wrap',
+            'font-family: Inter, system-ui, sans-serif',
+            'max-height: 380px',
+            'overflow-y: auto',
+            'color: #1e293b',
+            'word-break: break-word',
+        ].join(';');
+
         examPanel.innerHTML = currentTest.examText;
 
         // Collapsible toggle
