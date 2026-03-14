@@ -125,6 +125,19 @@ function setupEventListeners() {
       text = text.replace(/\n{2,}/g, '\u0000').replace(/\n/g, ' ').replace(/\u0000/g, '\n\n');
       document.execCommand('insertText', false, text.trim());
     }
+
+    // Auto-detect question count and update answer dropdowns
+    setTimeout(() => {
+      const editorText = document.getElementById('examFullText').innerText || '';
+      const reQ = /^(?:Question|Câu|Mark the letter)\s*\d+\b/gim;
+      const matches = editorText.match(reQ);
+      if (matches && matches.length > 0) {
+        const countInput = document.getElementById('answerCount');
+        countInput.value = matches.length;
+        renderAnswerInputs();
+        showToast(`✅ Tự động nhận diện ${matches.length} câu hỏi và tạo ô đáp án!`, 'success');
+      }
+    }, 300);
   });
 
   // Monitor test selection
@@ -303,25 +316,17 @@ function renderAnswerInputs() {
  * Strips Word CSS junk from HTML, returns clean HTML string
  */
 function cleanExamHtml(html) {
-  const tmp = document.createElement('div');
-  tmp.innerHTML = html || '';
-  tmp.querySelectorAll('style, script, head, meta, link, iframe').forEach(el => el.remove());
-  tmp.querySelectorAll('[style]').forEach(el => {
-    const s = el.style;
-    const bold = s.fontWeight === 'bold' || parseInt(s.fontWeight) >= 700;
-    const italic = s.fontStyle === 'italic';
-    const underline = s.textDecoration && s.textDecoration.includes('underline');
-    el.removeAttribute('style');
-    if (bold) el.style.fontWeight = 'bold';
-    if (italic) el.style.fontStyle = 'italic';
-    if (underline) el.style.textDecoration = 'underline';
-  });
-  tmp.querySelectorAll('[class],[id]').forEach(el => {
-    el.removeAttribute('class');
-    el.removeAttribute('id');
-  });
-  // nbsp → space, collapse spaces
-  return tmp.innerHTML
+  return (html || '')
+    // Remove <style>...</style> blocks WITH content
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+    // Remove <script>...</script> blocks WITH content
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+    // Strip all other tag attributes except style/bold/italic/underline-related
+    // (keep tags themselves, just clean msO-specific attributes)
+    .replace(/\s+mso-[^"';>]*[";]/g, '')
+    .replace(/\s+class="[^"]*"/g, '')
+    .replace(/\s+id="[^"]*"/g, '')
+    // Normalize spaces
     .replace(/&nbsp;/g, ' ')
     .replace(/\u00a0/g, ' ')
     .replace(/ {2,}/g, ' ');
@@ -342,11 +347,7 @@ function parseExamContent(htmlContent) {
 
   // Convert <br> and block-end tags to newline markers before extracting text
   tmp.querySelectorAll('br').forEach(br => br.replaceWith('\n'));
-  tmp.querySelectorAll('p, div, li, tr').forEach(block => {
-    block.after('\n');
-  });
-
-  const rawText = tmp.textContent || tmp.innerText || '';
+   const rawText = tmp.textContent || tmp.innerText || '';
 
   const lines = rawText
     .split('\n')
@@ -354,37 +355,52 @@ function parseExamContent(htmlContent) {
     .filter(l => l.length > 0);
 
   // 2. Patterns
-  // Question start: "Question N", "Câu N", or bare "N." at line start
   const reQ = /^(?:Question|Mark the letter[^:]*|Câu|Read[^:]*answer)\s*(\d+)\b/i;
-  // Option line: A. text or A text
   const reOpt = /^([A-D])[.)\s]\s*(.+)/;
+  // Inline options: "A. text B. text C. text D. text" all on one line, D max 10 words
+  const reInlineOpts = /\bA[.]\s*(.+?)\s+B[.]\s*(.+?)\s+C[.]\s*(.+?)\s+D[.]\s*(\S+(?:[\s\-–—]\S+){0,9})/;
 
   const passageLines = [];
   const questions = [];
-  let cur = null;   // current question being built
+  let cur = null;
   let inQ = false;
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
-
     const qMatch = line.match(reQ);
     const optMatch = line.match(reOpt);
 
     if (qMatch) {
-      // Save previous question
       if (cur) questions.push(cur);
       inQ = true;
-      // Question text may be the rest of the line after "Question N:"
-      const afterLabel = line.replace(reQ, '').replace(/^[:.\s]+/, '').trim();
-      cur = { text: afterLabel || `Câu ${questions.length + 1}`, options: {} };
-    } else if (optMatch && inQ && cur) {
+      let afterLabel = line.replace(reQ, '').replace(/^[:.]\s*/, '').trim();
+      cur = { text: '', options: {} };
+
+      // Check inline options on same line: "Question 6: A. make B. have C. bring D. take"
+      const inlineOpts = afterLabel.match(reInlineOpts);
+      if (inlineOpts) {
+        // Extract question text before A. (if any)
+        const qText = afterLabel.substring(0, afterLabel.search(/\bA[.]\s*/)).trim();
+        cur.text = qText || `Câu ${questions.length + 1}`;
+        cur.options = {
+          A: inlineOpts[1].trim(),
+          B: inlineOpts[2].trim(),
+          C: inlineOpts[3].trim(),
+          D: inlineOpts[4].trim()
+        };
+      } else {
+        cur.text = afterLabel || `Câu ${questions.length + 1}`;
+      }
+    } else if (optMatch && inQ && cur && Object.keys(cur.options).length < 4) {
       cur.options[optMatch[1]] = optMatch[2].trim();
     } else if (inQ && cur && !optMatch) {
-      // Continuation of question text (before options)
       if (Object.keys(cur.options).length === 0) {
+        // Continuation of question text (before options)
         cur.text += (cur.text ? ' ' : '') + line;
+      } else {
+        // After all options collected: this is a new passage section between question groups
+        passageLines.push(line);
       }
-      // After options started, ignore continuation lines
     } else if (!inQ) {
       passageLines.push(line);
     }

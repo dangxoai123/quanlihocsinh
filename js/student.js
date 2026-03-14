@@ -219,34 +219,15 @@ function renderQuestions() {
             'word-break: break-word',
         ].join(';');
 
-        // Clean the passage: use DOM to strip any leaked <style>/<script> content
-        const cleanTmp = document.createElement('div');
-        cleanTmp.innerHTML = passageText;
-        cleanTmp.querySelectorAll('style, script, head, meta, link').forEach(el => el.remove());
+        // Strip Word CSS blocks via regex (safe, no content loss)
+        const cleanedExam = passageText
+            .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+            .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+            .replace(/&nbsp;/g, ' ')
+            .replace(/\u00a0/g, ' ')
+            .replace(/ {2,}/g, ' ');
 
-        // Get plain text, filter out CSS-looking lines (from old Word pastes)
-        const isHtml = cleanTmp.children.length > 0;
-        let cleanedExam;
-        if (isHtml) {
-            // Has real HTML elements — render as HTML after style cleanup
-            cleanTmp.querySelectorAll('br').forEach(b => b.replaceWith('\n'));
-            cleanedExam = cleanTmp.innerHTML
-                .replace(/&nbsp;/g, ' ')
-                .replace(/\u00a0/g, ' ')
-                .replace(/ {2,}/g, ' ');
-            examPanel.innerHTML = cleanedExam;
-        } else {
-            // Plain text — filter CSS-looking lines then display
-            const filteredLines = passageText
-                .split('\n')
-                .filter(l => !/^mso-|^font-|^margin|^padding|^line-height|^\s*}|^\s*\{/.test(l.trim()))
-                .join('\n')
-                .replace(/&nbsp;/g, ' ')
-                .replace(/\u00a0/g, ' ')
-                .replace(/ {2,}/g, ' ');
-            examPanel.textContent = filteredLines;
-            examPanel.style.whiteSpace = 'pre-wrap';
-        }
+        examPanel.innerHTML = cleanedExam;
 
         const toggleBtn = document.createElement('button');
         toggleBtn.className = 'btn btn-outline btn-sm';
@@ -274,9 +255,45 @@ function renderQuestions() {
         card.id = `exam-q-${index}`;
         card.style.display = index === 0 ? 'block' : 'none';
 
+        // ===== CLIENT-SIDE RE-PARSE for garbled inline options =====
+        let displayQuestion = q.question || `Câu ${index + 1}`;
+        let displayOptions = { ...(q.options || { A: 'A', B: 'B', C: 'C', D: 'D' }) };
+
+        // Pattern: A/B/C greedy-stop before next option; D capped at 10 words max
+        const inlineOptRe = /\bA[.]\s*(.+?)\s+B[.]\s*(.+?)\s+C[.]\s*(.+?)\s+D[.]\s*(\S+(?:[\s\-–—]\S+){0,9})/;
+
+        // Case 1: garbled question text contains "A. x B. y C. z D. w..."
+        const inlineMatch = displayQuestion.match(inlineOptRe);
+        if (inlineMatch) {
+            displayOptions = {
+                A: inlineMatch[1].trim(),
+                B: inlineMatch[2].trim(),
+                C: inlineMatch[3].trim(),
+                D: inlineMatch[4].trim()
+            };
+            const beforeA = displayQuestion.substring(0, displayQuestion.search(/\bA[.]\s*/)).trim();
+            displayQuestion = beforeA || `Câu ${index + 1}`;
+        }
+
+        // Case 2: options.A contains all 4 choices (e.g. rearrangement Q type where
+        //         "A. c-b-a B. c-a-b C. a-c-b D. a-b-c" was all stored in options.A)
+        if (displayOptions.A && displayOptions.A !== 'A' &&
+            /\bB[.]\s*.+\bC[.]\s*.+\bD[.]\s*/.test(displayOptions.A)) {
+            const mergedLine = 'A. ' + displayOptions.A;
+            const mergeMatch = mergedLine.match(inlineOptRe);
+            if (mergeMatch) {
+                displayOptions = {
+                    A: mergeMatch[1].trim(),
+                    B: mergeMatch[2].trim(),
+                    C: mergeMatch[3].trim(),
+                    D: mergeMatch[4].trim()
+                };
+            }
+        }
+
         let optionsHtml = '';
         ['A', 'B', 'C', 'D'].forEach(label => {
-            const optText = q.options && q.options[label] ? q.options[label] : label;
+            const optText = displayOptions[label] !== label ? displayOptions[label] : label;
             const isSelected = answers[index] === label;
             optionsHtml += `
           <label class="answer-option ${isSelected ? 'selected' : ''}" id="opt-${index}-${label}">
@@ -287,10 +304,10 @@ function renderQuestions() {
           </label>`;
         });
 
-        // Show question text: always for parsed tests; hide for old full-text tests
-        const isPlaceholder = q.question === `Câu ${index + 1}` || q.question === `Question ${index + 1}`;
-        const questionTextHtml = (!isPlaceholder || hasRealOptions)
-            ? `<p class="question-text">${escapeHtml(q.question)}</p>`
+        // Show question text only if it's meaningful (not just "Câu N" or blank)
+        const isPlaceholder = displayQuestion === `Câu ${index + 1}` || displayQuestion === `Question ${index + 1}`;
+        const questionTextHtml = !isPlaceholder
+            ? `<p class="question-text">${escapeHtml(displayQuestion)}</p>`
             : '';
 
         card.innerHTML = `
