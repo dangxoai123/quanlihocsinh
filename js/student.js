@@ -203,13 +203,14 @@ function renderQuestions() {
             'margin-bottom: 20px',
             'font-size: 1rem',
             'line-height: 1.85',
-            'white-space: pre-wrap',
+            'white-space: normal',
             'font-family: Inter, system-ui, sans-serif',
             'max-height: 380px',
             'overflow-y: auto',
             'color: #1e293b',
             'word-break: break-word',
         ].join(';');
+
 
         examPanel.innerHTML = currentTest.examText;
 

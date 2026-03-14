@@ -56,21 +56,20 @@ function setupEventListeners() {
   renderAnswerInputs();
 
   // ===== PASTE HANDLER for exam text editor =====
-  // Keeps bold/italic/underline but strips font-family, size, color to stay clean
+  // Normalizes Word line-breaks so text reflows cleanly on any screen
   document.getElementById('examFullText').addEventListener('paste', function (e) {
     e.preventDefault();
     const clipData = e.clipboardData || window.clipboardData;
     const html = clipData.getData('text/html');
 
     if (html) {
-      // Parse HTML, clean styles but keep formatting tags
       const tmp = document.createElement('div');
       tmp.innerHTML = html;
 
-      // Remove all elements that are not useful formatting
-      tmp.querySelectorAll('script,style,iframe,meta,link,head,table,img').forEach(el => el.remove());
+      // Remove junk elements
+      tmp.querySelectorAll('script,style,iframe,meta,link,head,img,table').forEach(el => el.remove());
 
-      // Walk all elements and strip dangerous/cosmetic styles, keep only bold/italic/underline
+      // Normalize inline styles: keep only bold/italic/underline
       tmp.querySelectorAll('[style]').forEach(el => {
         const s = el.style;
         const bold = s.fontWeight === 'bold' || parseInt(s.fontWeight) >= 700;
@@ -82,31 +81,46 @@ function setupEventListeners() {
         if (underline) el.style.textDecoration = 'underline';
       });
 
-      // Remove class/id attributes
+      // Remove class/id
       tmp.querySelectorAll('[class],[id]').forEach(el => {
         el.removeAttribute('class');
         el.removeAttribute('id');
       });
 
-      // Replace <span> wrappers that have no style left with their inner content
+      // Strip empty <span> wrappers
       tmp.querySelectorAll('span').forEach(span => {
-        if (!span.getAttribute('style')) {
-          span.replaceWith(...span.childNodes);
+        if (!span.getAttribute('style')) span.replaceWith(...span.childNodes);
+      });
+
+      // Convert block elements (p/div) to paragraphs separated by double-br
+      // Empty blocks → single br (blank line); non-empty → content + br
+      tmp.querySelectorAll('p, div').forEach(block => {
+        const isEmpty = block.textContent.trim() === '';
+        const nodes = [...block.childNodes];
+        const br1 = document.createElement('br');
+        if (!isEmpty) {
+          // Append a <br> after the inline content to end the line
+          block.after(br1);
+          block.replaceWith(...nodes);
+        } else {
+          // Empty paragraph → skip (Word often has empty p as spacing)
+          block.remove();
         }
       });
 
-      // Replace <p> / <div> block elements with content + <br>
-      tmp.querySelectorAll('p, div').forEach(block => {
-        const br = document.createElement('br');
-        block.after(br);
-        block.replaceWith(...block.childNodes);
-      });
+      // Collapse 3+ consecutive <br> → max 2
+      let cleaned = tmp.innerHTML.replace(/(<br\s*\/?>[\s]*){3,}/gi, '<br><br>');
 
-      document.execCommand('insertHTML', false, tmp.innerHTML);
+      // Remove leading/trailing <br>
+      cleaned = cleaned.replace(/^(<br\s*\/?>[\s]*)+/i, '').replace(/(<br\s*\/?>[\s]*)+$/i, '');
+
+      document.execCommand('insertHTML', false, cleaned);
     } else {
-      // Fallback: plain text
-      const text = clipData.getData('text/plain') || '';
-      document.execCommand('insertText', false, text);
+      // Fallback: plain text — normalize line breaks
+      let text = clipData.getData('text/plain') || '';
+      // Double newline → paragraph break marker, single newline → space
+      text = text.replace(/\n{2,}/g, '\u0000').replace(/\n/g, ' ').replace(/\u0000/g, '\n\n');
+      document.execCommand('insertText', false, text.trim());
     }
   });
 
