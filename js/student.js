@@ -108,33 +108,44 @@ function startCameraSnapshots() {
 
     const video = document.getElementById('examCameraVideo');
     video.srcObject = cameraStream;
-    // Camera preview stays hidden - runs silently in background
 
-    // Capture snapshot every 25 minutes (1500 seconds)
+    // Ensure video plays (some browsers need explicit play() call)
+    video.play().catch(() => {});
+
+    // Capture snapshot every 2 minutes
     snapshotInterval = setInterval(() => {
         captureAndUploadSnapshot();
-    }, 1500000);
+    }, 120000);
 
-    // Capture first snapshot immediately
-    setTimeout(() => captureAndUploadSnapshot(), 1000);
+    // Wait for video to actually have frames before first capture
+    const doFirstCapture = () => captureAndUploadSnapshot();
+    if (video.readyState >= 3) {
+        // Already has frames
+        setTimeout(doFirstCapture, 500);
+    } else {
+        // Wait for canplay event
+        video.addEventListener('canplay', doFirstCapture, { once: true });
+        // Fallback: capture after 5s regardless
+        setTimeout(doFirstCapture, 5000);
+    }
 }
 
 function captureAndUploadSnapshot() {
     if (!cameraStream || !sessionId) return;
 
     const video = document.getElementById('examCameraVideo');
-    // Don't capture if camera hasn't loaded yet
-    if (!video || video.readyState < 2) return;
+    // Only capture when video has actual frame data
+    if (!video || video.readyState < 3 || video.videoWidth === 0) return;
 
     const canvas = document.getElementById('snapshotCanvas');
-    canvas.width = 320;
-    canvas.height = 240;
+    canvas.width = video.videoWidth || 320;
+    canvas.height = video.videoHeight || 240;
     const ctx = canvas.getContext('2d');
 
-    // Fill white background first so JPEG doesn't render transparent as black
+    // Fill white background so JPEG doesn't render transparent as black
     ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, 320, 240);
-    ctx.drawImage(video, 0, 0, 320, 240);
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
 
