@@ -114,6 +114,9 @@ function setupEventListeners() {
       // Remove leading/trailing <br>
       cleaned = cleaned.replace(/^(<br\s*\/?>[\s]*)+/i, '').replace(/(<br\s*\/?>[\s]*)+$/i, '');
 
+      // Strip non-breaking spaces → regular space, collapse 2+ spaces to 1
+      cleaned = cleaned.replace(/&nbsp;/g, ' ').replace(/ {2,}/g, ' ');
+
       document.execCommand('insertHTML', false, cleaned);
     } else {
       // Fallback: plain text — normalize line breaks

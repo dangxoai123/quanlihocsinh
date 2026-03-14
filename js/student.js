@@ -212,7 +212,13 @@ function renderQuestions() {
         ].join(';');
 
 
-        examPanel.innerHTML = currentTest.examText;
+        // Clean stored HTML: strip &nbsp; and collapse multi-spaces for clean reflow
+        const cleanedExam = (currentTest.examText || '')
+            .replace(/&nbsp;/g, ' ')
+            .replace(/\u00a0/g, ' ')
+            .replace(/ {2,}/g, ' ');
+        examPanel.innerHTML = cleanedExam;
+
 
         // Collapsible toggle
         const toggleBtn = document.createElement('button');
