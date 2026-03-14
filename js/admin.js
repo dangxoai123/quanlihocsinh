@@ -345,20 +345,25 @@ function parseExamContent(htmlContent) {
   // Remove elements whose CONTENT should also be discarded
   tmp.querySelectorAll('style, script, head, meta, link, iframe, img').forEach(el => el.remove());
 
-  // Convert <br> and block-end tags to newline markers before extracting text
-  tmp.querySelectorAll('br').forEach(br => br.replaceWith('\n'));
-   const rawText = tmp.textContent || tmp.innerText || '';
+  // Convert block elements to newlines BEFORE text extraction
+  // (textContent collapses everything; innerText preserves block-level line breaks)
+  tmp.querySelectorAll('p, div, li, h1, h2, h3, h4, h5, h6, tr').forEach(el => {
+    el.after(document.createTextNode('\n'));
+  });
+
+  // Use innerText for layout-aware newlines, fallback to textContent
+  const rawText = tmp.innerText || tmp.textContent || '';
 
   const lines = rawText
     .split('\n')
-    .map(l => l.replace(/ {2,}/g, ' ').trim())
+    .map(l => l.replace(/\t/g, ' ').replace(/ {2,}/g, ' ').trim())
     .filter(l => l.length > 0);
 
   // 2. Patterns
   const reQ = /^(?:Question|Mark the letter[^:]*|Câu|Read[^:]*answer)\s*(\d+)\b/i;
   const reOpt = /^([A-D])[.)\s]\s*(.+)/;
-  // Inline options: "A. text B. text C. text D. text" all on one line, D max 10 words
-  const reInlineOpts = /\bA[.]\s*(.+?)\s+B[.]\s*(.+?)\s+C[.]\s*(.+?)\s+D[.]\s*(\S+(?:[\s\-–—]\S+){0,9})/;
+  // Inline options: uppercase A/B/C/D only (no /i flag — lowercase a/b/c/d are conversation items)
+  const reInlineOpts = /\bA[.]\s*(.+?)\s+B[.]\s*(.+?)\s+C[.]\s*(.+?)\s+D[.]\s*(.+?)(?=\s+(?:Read\b|Mark\s+the\s+letter|Based\s+on|According\s+to|The\s+following|Choose\b|Questions?\s*\d|Passage\b)|$)/;
 
   const passageLines = [];
   const questions = [];

@@ -259,8 +259,8 @@ function renderQuestions() {
         let displayQuestion = q.question || `Câu ${index + 1}`;
         let displayOptions = { ...(q.options || { A: 'A', B: 'B', C: 'C', D: 'D' }) };
 
-        // Pattern: A/B/C greedy-stop before next option; D capped at 10 words max
-        const inlineOptRe = /\bA[.]\s*(.+?)\s+B[.]\s*(.+?)\s+C[.]\s*(.+?)\s+D[.]\s*(\S+(?:[\s\-–—]\S+){0,9})/;
+        // Uppercase A/B/C/D only — no /i flag (lowercase a/b/c/d = conversation items)
+        const inlineOptRe = /\bA[.]\s*(.+?)\s+B[.]\s*(.+?)\s+C[.]\s*(.+?)\s+D[.]\s*(.+?)(?=\s+(?:Read\b|Mark\s+the\s+letter|Based\s+on|According\s+to|The\s+following|Choose\b|Questions?\s*\d|Passage\b)|$)/;
 
         // Case 1: garbled question text contains "A. x B. y C. z D. w..."
         const inlineMatch = displayQuestion.match(inlineOptRe);
